@@ -1,4 +1,4 @@
-# v3
+# PSP-Planner-V3
 
 A new Flutter project.
 
