@@ -1,4 +1,6 @@
-// ignore_for_file: prefer_interpolation_to_compose_strings, empty_catches
+// ignore_for_file: prefer_interpolation_to_compose_strings, empty_catches, prefer_null_aware_operators
+
+import 'dart:io';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -12,6 +14,7 @@ import 'package:planner/components/bottomSheet.dart';
 import 'package:planner/components/button.dart';
 import 'package:planner/components/toast.dart';
 import 'package:planner/constant.dart';
+import 'package:planner/dbModels/models.dart';
 import 'package:planner/variables.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
@@ -32,7 +35,7 @@ class MyCalenderFX {
         }
       }
       final gd = Jalali(jdate.year, jdate.month, i + 1).toDateTime();
-      final hd = HijriCalendar.fromDate(gd);
+      final hd = DateConvertor.toHijri(gd);
       //hijri
       for (var j = 0; j < hejriEvent.length; j++) {
         if (hejriEvent[j]['Month'] == hd.hMonth) {
@@ -62,7 +65,7 @@ class MyCalenderFX {
     List eventList = [];
     // final gdate = DateTime.parse(date.toString());
     final jdate = gdate.toJalali();
-    final hdate = HijriCalendar.fromDate(gdate);
+    final hdate = DateConvertor.toHijri(gdate);
 
     //shamsi event
     for (var j = 0; j < persianEvent.length; j++) {
@@ -100,7 +103,7 @@ class MyCalenderFX {
   static bool dayIsVacation(DateTime date) {
     bool isVacation = false;
     final jdate = date.toJalali();
-    final hdate = HijriCalendar.fromDate(date);
+    final hdate = DateConvertor.toHijri(date);
     for (var i = 0; i < persianEvent.length; i++) {
       if (persianEvent[i]['Month'] == jdate.month) {
         if (persianEvent[i]['Day'] == jdate.day) {
@@ -146,7 +149,7 @@ class MyCalender {
     RxInt selectedMonth = jDate.month.obs;
     RxInt selectedYear = jDate.year.obs;
     return Container(
-        height: 280,
+        height: Platform.isIOS ? 290 : 280,
         padding: const EdgeInsets.only(top: 10),
         child: Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
           Expanded(
@@ -188,7 +191,7 @@ class MyCalender {
                           },
                           child: Icon(
                             Iconsax.arrow_right_1,
-                            color: grey,
+                            color: darkMode.isTrue ? grey2 : grey,
                           )),
                       Obx(() => Flexible(
                             child: Column(children: [
@@ -256,7 +259,7 @@ class MyCalender {
                           borderRadius: BorderRadius.circular(50),
                           child: Icon(
                             Iconsax.arrow_left,
-                            color: grey,
+                            color: darkMode.isTrue ? grey2 : grey,
                           )),
                     ]),
                 Expanded(
@@ -307,14 +310,27 @@ class MyCalender {
                                                       color: int.tryParse(e) ==
                                                               selectedDay.value
                                                           ? orange
-                                                          : Colors.transparent,
+                                                          : (int.tryParse(e) ==
+                                                                      Jalali.now()
+                                                                          .day &&
+                                                                  selectedMonth
+                                                                          .value ==
+                                                                      Jalali.now()
+                                                                          .month &&
+                                                                  selectedYear
+                                                                          .value ==
+                                                                      Jalali.now()
+                                                                          .year)
+                                                              ? orange.withOpacity(
+                                                                  0.5)
+                                                              : Colors
+                                                                  .transparent,
                                                       border: Border.all(
                                                           color:
                                                               grey2.withOpacity(
                                                                   0.2)),
                                                       borderRadius:
-                                                          BorderRadius.circular(
-                                                              5))
+                                                          BorderRadius.circular(5))
                                                   : null,
                                               child: Text(
                                                 e != '0' ? e : '',
@@ -383,7 +399,10 @@ class MyCalender {
                                 selectedDay.value)
                             .formatter
                             .wN,
-                        style: TextStyle(color: grey, fontSize: 30, height: 1)),
+                        style: TextStyle(
+                            color: darkMode.isTrue ? grey2 : grey,
+                            fontSize: 30,
+                            height: 1)),
                     Text(
                         // Jalali(selectedYear.value, selectedMonth.value,
                         //         selectedDay.value)
@@ -399,21 +418,42 @@ class MyCalender {
                                 selectedDay.value)
                             .formatter
                             .mN,
-                        style: TextStyle(color: grey, fontSize: 20, height: 1)),
+                        style: TextStyle(
+                            color: darkMode.isTrue ? grey2 : grey,
+                            fontSize: 20,
+                            height: 1)),
                     const SizedBox(height: 15),
                     Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10),
                         child: Row(children: [
                           MyButton(
-                              title: 'مناسبت‌ها',
-                              bgColor:
-                                  darkMode.value ? Colors.grey.shade100 : grey,
+                              title: MyCalenderFX.findDayEvent(Jalali(
+                                              selectedYear.value,
+                                              selectedMonth.value,
+                                              selectedDay.value)
+                                          .toDateTime())
+                                      .isEmpty
+                                  ? "مناسبت‌ها"
+                                  : 'مناسبت‌ها (${MyCalenderFX.findDayEvent(Jalali(selectedYear.value, selectedMonth.value, selectedDay.value).toDateTime()).length})',
+                              bgColor: darkMode.value
+                                  ? Colors.grey.shade100
+                                  : MyCalenderFX.findDayEvent(Jalali(selectedYear.value, selectedMonth.value, selectedDay.value).toDateTime())
+                                          .isEmpty
+                                      ? grey
+                                      : orange.withOpacity(0.5),
                               icon: Iconsax.calendar_search,
-                              borderOnly: true,
-                              textColor:
-                                  darkMode.value ? Colors.grey.shade100 : grey,
-                              onTap: () => _showEvent(selectedYear.value,
-                                  selectedMonth.value, selectedDay.value))
+                              borderOnly: MyCalenderFX.findDayEvent(Jalali(
+                                          selectedYear.value,
+                                          selectedMonth.value,
+                                          selectedDay.value)
+                                      .toDateTime())
+                                  .isEmpty,
+                              textColor: MyCalenderFX.findDayEvent(Jalali(selectedYear.value, selectedMonth.value, selectedDay.value).toDateTime()).isEmpty
+                                  ? darkMode.value
+                                      ? Colors.grey.shade100
+                                      : grey
+                                  : Colors.grey.shade800,
+                              onTap: () => _showEvent(selectedYear.value, selectedMonth.value, selectedDay.value))
                         ]))
                   ]));
             },
@@ -421,7 +461,7 @@ class MyCalender {
         ]));
   }
 
-  static viewWeek({DateTime? init, required callback}) {
+  static viewWeek({DateTime? init, required callback, bool showBadg = true}) {
     init = init ?? DateTime.now();
     final jDate = init.toJalali();
     RxInt selectedDay = jDate.day.obs;
@@ -490,8 +530,10 @@ class MyCalender {
                               selectedYear.value = jd.year;
                               callback(DateTime.parse(
                                   glist[listOfDay.indexOf(e)].toString()));
-                              _showEvent(selectedYear.value,
-                                  selectedMonth.value, selectedDay.value);
+                              if (showBadg) {
+                                _showEvent(selectedYear.value,
+                                    selectedMonth.value, selectedDay.value);
+                              }
                             },
                             child: Obx(() => selectedDay.value >= 0
                                 ? Stack(children: [
@@ -503,7 +545,18 @@ class MyCalender {
                                                         .split('\n')[1]) ==
                                                     selectedDay.value
                                                 ? orange
-                                                : Colors.transparent,
+                                                : (int.tryParse(e
+                                                                .toString()
+                                                                .split(
+                                                                    '\n')[1]) ==
+                                                            Jalali.now().day &&
+                                                        selectedMonth.value ==
+                                                            Jalali.now()
+                                                                .month &&
+                                                        selectedYear.value ==
+                                                            Jalali.now().year)
+                                                    ? orange.withOpacity(0.5)
+                                                    : Colors.transparent,
                                             border: Border.all(
                                                 color: grey2.withOpacity(0.5)),
                                             borderRadius:
@@ -520,19 +573,21 @@ class MyCalender {
                                               selectedDay.value,
                                               'week'),
                                         )),
-                                    _eventBadg(
-                                        DateTime.parse(
-                                                glist[listOfDay.indexOf(e)]
-                                                    .toString())
-                                            .toJalali(),
-                                        e.toString().split('\n')[1]),
-                                    _mytaskBadg(
-                                        DateTime.parse(
-                                                glist[listOfDay.indexOf(e)]
-                                                    .toString())
-                                            .toJalali(),
-                                        e.toString().split('\n')[1],
-                                        selectedDay.value),
+                                    if (showBadg)
+                                      _eventBadg(
+                                          DateTime.parse(
+                                                  glist[listOfDay.indexOf(e)]
+                                                      .toString())
+                                              .toJalali(),
+                                          e.toString().split('\n')[1]),
+                                    if (showBadg)
+                                      _mytaskBadg(
+                                          DateTime.parse(
+                                                  glist[listOfDay.indexOf(e)]
+                                                      .toString())
+                                              .toJalali(),
+                                          e.toString().split('\n')[1],
+                                          selectedDay.value),
                                     _hijridate(
                                         DateTime.parse(
                                                 glist[listOfDay.indexOf(e)]
@@ -579,7 +634,15 @@ class MyCalender {
       ]),
     );
   }
+// _initPicker( {DateTime? init,
+//       DateTime? start,
+//       DateTime? end,
+//       bool noTime = false,
+//       bool time = false,
+//       required callback}){
 
+//         callback(i,s,e,nt,t)
+//       }
   static picker(
       {DateTime? init,
       DateTime? start,
@@ -587,8 +650,17 @@ class MyCalender {
       bool noTime = false,
       bool time = false,
       required callback}) {
+    // _initPicker( {DateTime? init,
+    //   DateTime? start,
+    //   DateTime? end,
+    //   bool noTime = false,
+    //   bool time = false,
+    //   required callback});
+
+    Jalali jDate = DateTime.now().toJalali();
+
     init = init ?? DateTime.now();
-    Jalali jDate = init.toJalali();
+    jDate = init.toJalali();
     final startDayMonth = Jalali(jDate.year, jDate.month, 1).weekDay;
     RxList listOfDay = [].obs;
     listOfDay.addAll(weekDayH);
@@ -607,6 +679,7 @@ class MyCalender {
     RxInt selectedYear = jDate.year.obs;
     DateTime selectedTime = DateTime.now();
     RxBool change = false.obs;
+
     MyBottomSheet.view(
         Obx(() => change.isTrue || change.isFalse
             ? Container(
@@ -641,6 +714,7 @@ class MyCalender {
                               listOfDay.addAll(List.generate(
                                   thisMonth.monthLength,
                                   (index) => (index + 1).toString()));
+                              jDate = thisMonth;
                               if (listOfDay.length > 42) {
                                 List extra = [];
                                 extra.addAll(listOfDay.sublist(0, 7));
@@ -680,12 +754,61 @@ class MyCalender {
                                           )),
                                       Flexible(
                                           fit: FlexFit.tight,
-                                          child: Text(
-                                            '${selectedYear.value}',
-                                            textAlign: TextAlign.end,
-                                            style:
-                                                const TextStyle(fontSize: 17),
-                                          )),
+                                          child: InkWell(
+                                              onTap: () => _selectYear((y) {
+                                                    selectedYear.value = y;
+                                                    Jalali thisMonth = Jalali(
+                                                        selectedYear.value,
+                                                        selectedMonth.value,
+                                                        1);
+                                                    listOfDay.value = [];
+                                                    listOfDay.addAll(weekDayH);
+                                                    listOfDay.addAll(
+                                                        List.generate(
+                                                            thisMonth.weekDay -
+                                                                1,
+                                                            (index) => '0'));
+                                                    listOfDay.addAll(
+                                                        List.generate(
+                                                            thisMonth
+                                                                .monthLength,
+                                                            (index) => (index +
+                                                                    1)
+                                                                .toString()));
+                                                    jDate = thisMonth;
+                                                    if (listOfDay.length > 42) {
+                                                      List extra = [];
+                                                      extra.addAll(listOfDay
+                                                          .sublist(0, 7));
+                                                      extra.addAll(listOfDay
+                                                          .sublist(42));
+                                                      extra.addAll(
+                                                          listOfDay.sublist(
+                                                              extra.length,
+                                                              42));
+                                                      listOfDay.value = extra;
+                                                    }
+                                                    change.toggle();
+                                                    // init = DateTime(
+                                                    //     selectedYear.value,
+                                                    //     init!.month,
+                                                    //     init!.day);
+                                                    // initPicker();
+                                                  },
+                                                      start: start != null
+                                                          ? start
+                                                              .toJalali()
+                                                              .year
+                                                          : null,
+                                                      end: end != null
+                                                          ? end.toJalali().year
+                                                          : null),
+                                              child: Text(
+                                                '${selectedYear.value}',
+                                                textAlign: TextAlign.end,
+                                                style: const TextStyle(
+                                                    fontSize: 17),
+                                              ))),
                                       Flexible(
                                           fit: FlexFit.tight,
                                           child: Container()),
@@ -899,6 +1022,44 @@ class MyCalender {
   }
 }
 
+_selectYear(callback, {int? start, int? end}) {
+  int y = Jalali.now().year;
+  if (end != null) {
+    if (y > end) y = end;
+  }
+  List year = [];
+  for (var i = 0; i < 102; i++) {
+    if ((start != null && (y - i) > (start - 1)) || start == null) {
+      year.add(y - i);
+    } else {
+      break;
+    }
+  }
+  return MyBottomSheet.view(Wrap(
+    // alignment: WrapAlignment.center,
+    children: year
+        .map((e) => InkWell(
+              onTap: () => {callback(e), Get.back()},
+              child: Container(
+                margin: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                    border: Border.all(color: darkMode.isFalse ? grey2 : grey),
+                    borderRadius: BorderRadius.circular(10)),
+                alignment: Alignment.center,
+                padding: const EdgeInsets.all(5),
+                height: 30,
+                width: 80,
+                child: Text(
+                  (e).toString(),
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ))
+        .toList(),
+  ));
+}
+
 bool _checkCondition(
   e,
   start,
@@ -936,6 +1097,10 @@ class DateConvertor {
         ? '${jdd.hour}:${jdd.minute}-${jdd.year}/${jdd.month}/${jdd.day}'
         : '${jdd.year}/${jdd.month}/${jdd.day}';
   }
+
+  static HijriCalendar toHijri(DateTime date) {
+    return HijriCalendar.fromDate(date.add(Duration(days: hijriOffset.value)));
+  }
 }
 
 _showEvent(selectedYear, selectedMonth, selectedDay) {
@@ -949,7 +1114,7 @@ _showEvent(selectedYear, selectedMonth, selectedDay) {
       Jalali(selectedYear, selectedMonth, selectedDay).weekDay == 7;
   DateTime gdate =
       Jalali(selectedYear, selectedMonth, selectedDay).toDateTime();
-  HijriCalendar hdate = HijriCalendar.fromDate(gdate);
+  HijriCalendar hdate = DateConvertor.toHijri(gdate);
   MyBottomSheet.view(
       (Column(children: [
         Text(
@@ -1010,13 +1175,22 @@ _style(Jalali date, day, selDay, mode) {
 }
 
 _eventBadg(Jalali date, day) {
+  Setting se = setting.getAt(0)!;
   try {
-    if (setting.getAt(0)!.calenderEvent! &&
+    if ((se.calenderEvent! || se.myEvent!) &&
         int.tryParse(day) != null &&
         int.parse(day) != 0) {
-      var ev = MyCalenderFX.findDayEvent(
-          Jalali(date.year, date.month, int.parse(day)).toDateTime());
-      if (ev.isNotEmpty) {
+      Jalali jd = Jalali(date.year, date.month, int.parse(day));
+      var ev =
+          se.calenderEvent! ? MyCalenderFX.findDayEvent(jd.toDateTime()) : [];
+      var myev = event.values
+          .where((element) =>
+              element.date != '' &&
+              '${jd.day}${jd.month}' ==
+                  '${element.effDate.split('/')[1]}${element.effDate.split('/')[0]}')
+          .toList();
+
+      if (ev.isNotEmpty || myev.isNotEmpty) {
         return Positioned(
             top: 0,
             left: 0,
@@ -1028,7 +1202,11 @@ _eventBadg(Jalali date, day) {
                   color: grey2.withOpacity(0.5)),
               alignment: Alignment.center,
               child: Text(
-                ev.length.toString(),
+                se.myEvent! && se.calenderEvent!
+                    ? (myev.length + ev.length).toString()
+                    : se.myEvent! && !se.calenderEvent!
+                        ? myev.length.toString()
+                        : ev.length.toString(),
                 style: const TextStyle(height: 1, fontSize: 10),
               ),
             ));
@@ -1039,34 +1217,74 @@ _eventBadg(Jalali date, day) {
 }
 
 _mytaskBadg(Jalali date, day, selDay) {
-  if (setting.getAt(0)!.myTask! &&
-      int.tryParse(day) != null &&
-      int.parse(day) != 0) {
-    var ev = ['l'];
-    //print(ev);
-    if (ev.isNotEmpty) {
-      return Positioned(
-          top: 0,
-          right: 0,
-          child: Container(
-            height: 12,
-            width: 12,
-            decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(5),
-                color: int.tryParse(day) == selDay
-                    ? Colors.white.withOpacity(0.9)
-                    : orange.withOpacity(0.5)),
-            alignment: Alignment.center,
-            child: Text(
-              ev.length.toString(),
-              style: TextStyle(
-                  height: 1,
-                  fontSize: 10,
-                  color: int.tryParse(day) == selDay ? orange : Colors.black),
-            ),
-          ));
+  int ev = 0;
+  DateTime? dd;
+  if (int.tryParse(day) != null && int.parse(day) != 0) {
+    try {
+      dd = Jalali(date.year, date.month, int.parse(day)).toDateTime();
+    } catch (e) {
+      dd = Jalali(
+              date.year, date.month, Jalali(date.year, date.month).monthLength)
+          .toDateTime();
     }
   }
+
+  if ((setting.getAt(0)!.myTask! || setting.getAt(0)!.myCost!) && dd != null) {
+    var w = setting.getAt(0)!.myTask!
+        ? work.values
+            .where((element) =>
+                element.startDate != '' &&
+                element.postponed == 0 &&
+                '${dd!.day}${dd.month}${dd.year}' ==
+                    '${DateTime.parse(element.startDate).day}${DateTime.parse(element.startDate).month}${DateTime.parse(element.startDate).year}')
+            .toList()
+        : [];
+    var c = setting.getAt(0)!.myCost!
+        ? cost.values
+            .where((element) =>
+                '${dd!.day}${dd.month}${dd.year}' ==
+                '${DateTime.parse(element.effDate).day}${DateTime.parse(element.effDate).month}${DateTime.parse(element.effDate).year}')
+            .toList()
+        : [];
+    ev = w.length + c.length;
+    //print(ev);
+  }
+  if (dd != null) {
+    ev = ev +
+        krdo.values
+            .where((element) =>
+                '${dd!.day}${dd.month}${dd.year}' ==
+                '${DateTime.parse(element.date).day}${DateTime.parse(element.date).month}${DateTime.parse(element.date).year}')
+            .toList()
+            .length;
+  }
+  if (ev > 0) {
+    return Positioned(
+        top: 0,
+        right: 0,
+        child: Container(
+          height: 12,
+          width: 12,
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(5),
+              color: int.tryParse(day) == selDay
+                  ? Colors.white.withOpacity(0.9)
+                  : orange.withOpacity(0.5)),
+          alignment: Alignment.center,
+          child: Text(
+            ev.toString(),
+            style: TextStyle(
+                height: 1,
+                fontSize: 10,
+                color: int.tryParse(day) == selDay
+                    ? orange
+                    : darkMode.isTrue
+                        ? Colors.white
+                        : Colors.black),
+          ),
+        ));
+  }
+
   return Container();
 }
 
@@ -1079,7 +1297,7 @@ _hijridate(Jalali date, day, selDay) {
             child: Container(
               alignment: Alignment.center,
               child: Text(
-                HijriCalendar.fromDate(
+                DateConvertor.toHijri(
                         Jalali(date.year, date.month, int.parse(day))
                             .toDateTime())
                     .hDay
@@ -1121,9 +1339,9 @@ _findHijriMonthName(Jalali date) {
   String hmName = '';
   List hm = [];
   for (var i = 0; i < sjd.monthLength; i++) {
-    int hmn = HijriCalendar.fromDate(
-            Jalali(date.year, date.month, i + 1).toDateTime())
-        .hMonth;
+    int hmn =
+        DateConvertor.toHijri(Jalali(date.year, date.month, i + 1).toDateTime())
+            .hMonth;
     if (!hm.contains(hmn)) {
       hm.add(hmn);
       hmName =

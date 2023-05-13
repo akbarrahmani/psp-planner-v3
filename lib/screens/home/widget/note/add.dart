@@ -44,7 +44,6 @@ addNote({Note? item, callback}) {
                 focusNode: tf,
                 nextFocusNode: df,
                 textInputAction: TextInputAction.next,
-                required: true,
                 type: InputType.text,
                 icon: Iconsax.note_2,
               ),
@@ -97,9 +96,7 @@ addNote({Note? item, callback}) {
                         bgColor: orange,
                         textColor: Colors.white,
                         onTap: () async {
-                          if (title.text.isEmpty) {
-                            return MyToast.error('عنوان را وارد کنید.');
-                          } else if (desc.text.isEmpty) {
+                          if (desc.text.isEmpty) {
                             return MyToast.error('توضیحات را وارد کنید.');
                           }
                           Note n = Note(

@@ -5,6 +5,8 @@ import 'package:get/get.dart';
 import 'package:planner/constant.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../../../variables.dart';
+
 class WeProduct extends GetView {
   @override
   Widget build(BuildContext context) {
@@ -243,22 +245,31 @@ class WeProduct extends GetView {
   }
 
   productCat(catName, pr) {
-    return Container(
-        decoration: BoxDecoration(
-            color: Colors.white,
-            border: Border.all(color: grey2),
-            borderRadius: BorderRadius.circular(10)),
-        margin: const EdgeInsets.only(top: 2, bottom: 2, right: 20, left: 20),
-        //  padding: EdgeInsets,
-        child: ExpansionTile(
-            title: Text(
-              catName,
-              style: TextStyle(
-                  fontSize: 17, fontWeight: FontWeight.bold, color: orange),
-            ),
-            children: [
-              for (var i = 0; i < pr.length; i++) prChild(pr[i][0], pr[i][1])
-            ]));
+    return Column(children: [
+      //Container(
+      // decoration: BoxDecoration(
+      //     color: Colors.white,
+      // border: Border.all(color: grey2),
+      // borderRadius: BorderRadius.circular(10)),
+      // margin: const EdgeInsets.only(top: 2, bottom: 2, right: 20, left: 20),
+      //  padding: EdgeInsets,
+      //  child:
+      ExpansionTile(
+          title: Text(
+            catName,
+            style: TextStyle(
+                fontSize: 17, fontWeight: FontWeight.bold, color: orange),
+          ),
+          children: [
+            for (var i = 0; i < pr.length; i++) prChild(pr[i][0], pr[i][1])
+          ]),
+      Container(
+        height: 1,
+        width: Get.width,
+        margin: const EdgeInsets.only(right: 30),
+        color: darkMode.isTrue ? Colors.grey.shade800 : Colors.grey.shade300,
+      )
+    ]);
   }
 
   prChild(name, url) {

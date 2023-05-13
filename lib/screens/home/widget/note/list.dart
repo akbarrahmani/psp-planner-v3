@@ -100,22 +100,29 @@ class NoteItem extends GetView {
                           ),
                         ),
                         const SizedBox(width: 8),
-                        Flexible(
+                        Expanded(
                             child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                              Text(
-                                item.title,
-                                style: const TextStyle(fontSize: 16),
-                              ),
-                              Flexible(
-                                  child: Text(
-                                item.text.replaceAll('\n', ' '),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: TextStyle(
-                                    height: 1, fontSize: 13, color: grey),
-                              )),
+                              Expanded(
+                                  child: Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
+                                      children: [
+                                    if (item.title.isNotEmpty)
+                                      Text(
+                                        item.title,
+                                        style: const TextStyle(fontSize: 16),
+                                      ),
+                                    Flexible(
+                                        child: Text(
+                                      item.text.replaceAll('\n', ' '),
+                                      maxLines: item.title.isNotEmpty ? 2 : 1,
+                                      overflow: TextOverflow.ellipsis,
+                                      style: TextStyle(
+                                          height: 1, fontSize: 13, color: grey),
+                                    ))
+                                  ])),
                               Align(
                                   alignment: Alignment.bottomLeft,
                                   child: Text(
@@ -187,6 +194,56 @@ _itemDetails(Note item, callback) {
                   callback: (v) {
                     callback(v);
                   });
+            },
+            borderOnly: true,
+          ),
+          const SizedBox(width: 10),
+          MyButton(
+            title: 'حذف',
+            bgColor: Colors.red,
+            textColor: Colors.red,
+            icon: Iconsax.trash,
+            onTap: () {
+              Get.back();
+              MyBottomSheet.view(
+                  Column(children: [
+                    const Text(
+                      'عملیات حذف قابل بازگشت نیست!',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const Text('از حذف اطمینان دارید؟'),
+                    const SizedBox(height: 10),
+                    Row(children: [
+                      MyButton(
+                        title: 'تایید و حذف',
+                        bgColor: Colors.red,
+                        textColor: Colors.white,
+                        icon: Iconsax.trash,
+                        onTap: () async {
+                          Get.back();
+                          for (var i = 0; i < note.length; i++) {
+                            if (note.getAt(i)!.id == item.id) {
+                              await note.deleteAt(i);
+                              callback('v');
+                              break;
+                            }
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      MyButton(
+                          title: 'انصراف',
+                          bgColor: grey,
+                          textColor: grey,
+                          icon: Iconsax.close_circle,
+                          borderOnly: true,
+                          onTap: () {
+                            Get.back();
+                          })
+                    ])
+                  ]),
+                  h: 130);
             },
             borderOnly: true,
           )

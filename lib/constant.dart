@@ -4,6 +4,8 @@ import 'package:iconsax/iconsax.dart';
 Color orange = const Color(0xfff5821f);
 Color grey = const Color(0xff6e6f71);
 Color grey2 = const Color(0xffC4C5C6);
+Color womanColor = const Color.fromARGB(255, 199, 3, 170);
+Color manColor = const Color.fromARGB(255, 20, 110, 183);
 const wdn = [
   'شنبه',
   'یک‌شنبه',
@@ -63,3 +65,8 @@ List<IconData> noteCat = [
   Iconsax.additem,
   Iconsax.briefcase
 ];
+
+const androidOAuth =
+    '481639956935-aps34m0rqbhd96hsesct5tjquc07qjt8.apps.googleusercontent.com';
+const iosOAuth =
+    '481639956935-99am6qtvfrrahqndq3r83acf4aj8orrk.apps.googleusercontent.com';

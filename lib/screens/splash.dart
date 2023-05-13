@@ -35,7 +35,9 @@ class SplashController extends GetxController
     await DataBase.readDate();
   }
 
-  navigate() {
+  navigate() async {
+    await ScheduledNotifications.setEvent();
+    await ScheduledNotifications.setKrdo();
     Get.offAll(MainScreen());
   }
 }

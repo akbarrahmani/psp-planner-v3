@@ -31,6 +31,7 @@ class MyInput extends StatefulWidget {
   FocusNode? focusNode;
   FocusNode? nextFocusNode;
   int? line;
+  int? length;
   double? fontSize;
   TextAlign? textAlign;
   var onChanged;
@@ -42,6 +43,7 @@ class MyInput extends StatefulWidget {
   TextInputType? keyboardType;
   TextInputAction? textInputAction;
   InputType type;
+  Widget? suffix;
 
   MyInput(
       {super.key,
@@ -49,6 +51,7 @@ class MyInput extends StatefulWidget {
       required this.type,
       this.fillColor,
       this.icon,
+      this.suffix,
       this.callback,
       this.required,
       this.controller,
@@ -63,7 +66,8 @@ class MyInput extends StatefulWidget {
       this.isCollapsed,
       this.textAlign,
       this.fontSize,
-      this.line});
+      this.line,
+      this.length});
   // : _type = type,
   //       super(key: key);
   // InputType get type => _type;
@@ -127,6 +131,9 @@ class _MyInputState extends State<MyInput> {
                 //     ? TextAlign.end
                 //     : TextAlign.start,
                 decoration: InputDecoration(
+                  fillColor: Colors.transparent,
+                  //  widget.fillColor ??
+                  //     (Get.isDarkMode ? grey : Colors.grey.shade300),
                   isCollapsed: true, //widget.isCollapsed ?? false,
                   errorBorder: const OutlineInputBorder(
                     borderSide: BorderSide(color: Colors.red),
@@ -141,6 +148,9 @@ class _MyInputState extends State<MyInput> {
                     borderSide: BorderSide.none,
                     borderRadius: BorderRadius.all(Radius.circular(10)),
                   ),
+
+                  suffix:
+                      widget.type != InputType.password ? widget.suffix : null,
                   suffixIcon: widget.type == InputType.password
                       ? IconButton(
                           onPressed: () => setState(() {
@@ -211,16 +221,22 @@ class _MyInputState extends State<MyInput> {
           LengthLimitingTextInputFormatter(10)
         ];
       case InputType.number:
-        return [
-          FilteringTextInputFormatter.digitsOnly,
-        ];
+        var limit = [];
+        if (widget.length != null) {
+          limit.add(LengthLimitingTextInputFormatter(widget.length));
+        }
+        return [FilteringTextInputFormatter.digitsOnly, ...limit];
       case InputType.tel:
         return [
           FilteringTextInputFormatter.digitsOnly,
           LengthLimitingTextInputFormatter(11)
         ];
       default:
-        return [];
+        var limit = [];
+        if (widget.length != null) {
+          limit.add(LengthLimitingTextInputFormatter(widget.length));
+        }
+        return [...limit];
     }
   }
 }

@@ -90,5 +90,6 @@ dependencies {
     implementation "com.google.firebase:firebase-messaging:23.1.0"
     implementation "com.google.android.gms:play-services-base:18.1.0"
 }
+apply plugin: 'com.android.application'
 apply plugin: 'com.google.gms.google-services'
 apply plugin: 'appmetrica-plugin'

@@ -13,39 +13,62 @@ import 'package:planner/components/toast.dart';
 import 'package:planner/constant.dart';
 import 'package:planner/dbModels/models.dart';
 import 'package:planner/screens/home/widget/work/add.dart';
+import 'package:planner/screens/okr/krdo/list.dart';
 import 'package:planner/service/notifications/notification.dart';
 import 'package:planner/variables.dart';
 import 'package:shamsi_date/shamsi_date.dart';
 
+RxBool _change = false.obs;
+workListHomePageChange() {
+  _change.toggle();
+}
+
 class ShowWorkInHome extends GetView {
   var callback;
   ShowWorkInHome({super.key, required this.callback});
-  RxBool change = false.obs;
+
   List<Work> dayWork = [];
+  List<KRdo> dayKRdo = [];
   @override
   Widget build(BuildContext context) {
     initpage();
-    return Obx(() => change.isFalse || change.isTrue
-        ? Column(
-            children: dayWork
-                .map((e) => WorkItem(
-                      item: e,
+    return Obx(() => _change.isFalse || _change.isTrue
+        ? Column(children: [
+            ...dayKRdo
+                .map((e) => KRDOItemShowInHome(
+                      kd: e,
                       callback: (v) {
-                        change.toggle();
+                        _change.toggle();
                         callback('v');
                       },
                     ))
-                .toList())
+                .toList(),
+            ...dayWork
+                .map((e) => WorkItem(
+                      item: e,
+                      callback: (v) {
+                        _change.toggle();
+                        callback('v');
+                      },
+                    ))
+                .toList()
+          ])
         : Container());
   }
 
   initpage() {
     dayWork = [];
+    dayKRdo = [];
     dayWork = work.values
         .where((element) =>
             element.startDate != '' &&
             '${selectedDate.value.day}${selectedDate.value.month}${selectedDate.value.year}' ==
                 '${DateTime.parse(element.startDate).day}${DateTime.parse(element.startDate).month}${DateTime.parse(element.startDate).year}')
+        .toList();
+    dayKRdo = krdo.values
+        .where((element) =>
+            '${selectedDate.value.day}${selectedDate.value.month}${selectedDate.value.year}' ==
+            '${DateTime.parse(element.date).day}${DateTime.parse(element.date).month}${DateTime.parse(element.date).year}')
         .toList();
     dayWork.sort((a, b) =>
         DateTime.parse(a.startDate).compareTo(DateTime.parse(b.startDate)));
@@ -112,8 +135,7 @@ class WorkItem extends GetView {
                       right: 10, bottom: 5, top: 5, left: 10),
                   height: 50,
                   child: InkWell(
-                      onTap: () =>
-                          _workItemDetails(item!, (v) => callback('v')),
+                      onTap: () => workItemDetails(item!, (v) => callback('v')),
                       child: Row(children: [
                         CircleAvatar(
                           backgroundColor: _checkStatus(item!) == 0
@@ -135,6 +157,22 @@ class WorkItem extends GetView {
                           ),
                         ),
                         const SizedBox(width: 8),
+                        if (setting.getAt(0)!.workPriority!)
+                          Icon(
+                            item!.priority == 0
+                                ? Iconsax.arrow_square_down
+                                : item!.priority == 1
+                                    ? Iconsax.minus_square
+                                    : Iconsax.arrow_square_up,
+                            size: 20,
+                            color: item!.priority == 0
+                                ? Colors.red
+                                : item!.priority == 1
+                                    ? Colors.amber
+                                    : Colors.green,
+                          ),
+                        if (setting.getAt(0)!.workPriority!)
+                          const SizedBox(width: 5),
                         Flexible(
                             child: Row(children: [
                           Flexible(
@@ -189,18 +227,19 @@ String _workTime(Work item) {
       int jdn = DateTime.parse(item.endTime)
           .difference(DateTime.parse(item.startDate))
           .inMinutes;
-      return 'انجام شده(${(jdn / 60).toString().split('.')[0]}:${(jdn % 60).toStringAsFixed(0)})';
+      return 'انجام شده (${(jdn / 60).toString().split('.')[0]}:${(jdn % 60).toStringAsFixed(0)})';
     } catch (e) {
-      return 'انجام شده(${item.endTime})';
+      return 'انجام شده (${item.endTime})';
     }
   }
   return 'انجام شده (بدون زمان)';
 }
 
-_workItemDetails(Work item, callback) {
+workItemDetails(Work item, callback) {
   String jsd = 'بدون زمان‌بندی';
   String jnd = 'بدون اعلان';
   String jed = _workTime(item);
+  int priority = item.priority;
   var jdd = DateTime.parse(item.startDate).toJalali();
   jsd = '${jdd.day} ${jdd.formatter.mN} ${jdd.year} ${jdd.hour}:${jdd.minute}';
   if (item.notifTime != '') {
@@ -211,13 +250,31 @@ _workItemDetails(Work item, callback) {
 
   MyBottomSheet.view(
       Column(children: [
-        MyInput(
-          controller: TextEditingController(text: item.title),
-          title: 'عنوان',
-          icon: Iconsax.briefcase,
-          type: InputType.text,
-          readOnly: true,
-        ),
+        Row(children: [
+          Flexible(
+            child: MyInput(
+              controller: TextEditingController(text: item.title),
+              title: 'عنوان',
+              icon: Iconsax.briefcase,
+              type: InputType.text,
+              readOnly: true,
+            ),
+          ),
+          if (setting.getAt(0)!.workPriority!)
+            Icon(
+              priority == 0
+                  ? Iconsax.arrow_square_down
+                  : priority == 1
+                      ? Iconsax.minus_square
+                      : Iconsax.arrow_square_up,
+              size: 40,
+              color: priority == 0
+                  ? Colors.red
+                  : priority == 1
+                      ? Colors.amber
+                      : Colors.green,
+            )
+        ]),
         MyInput(
           controller: TextEditingController(text: item.desc),
           title: 'توضیحات',
@@ -316,6 +373,57 @@ _workItemDetails(Work item, callback) {
                     });
               },
               borderOnly: true,
+            ),
+            const SizedBox(width: 10),
+            MyButton(
+              title: 'حذف',
+              bgColor: Colors.red,
+              textColor: Colors.red,
+              icon: Iconsax.trash,
+              onTap: () {
+                Get.back();
+                MyBottomSheet.view(
+                    Column(children: [
+                      const Text(
+                        'عملیات حذف قابل بازگشت نیست!',
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.bold),
+                      ),
+                      const Text('از حذف اطمینان دارید؟'),
+                      const SizedBox(height: 10),
+                      Row(children: [
+                        MyButton(
+                          title: 'تایید و حذف',
+                          bgColor: Colors.red,
+                          textColor: Colors.white,
+                          icon: Iconsax.trash,
+                          onTap: () async {
+                            Get.back();
+                            for (var i = 0; i < work.length; i++) {
+                              if (work.getAt(i)!.id == item.id) {
+                                await work.deleteAt(i);
+                                callback('v');
+
+                                break;
+                              }
+                            }
+                          },
+                        ),
+                        const SizedBox(width: 10),
+                        MyButton(
+                            title: 'انصراف',
+                            bgColor: grey,
+                            textColor: grey,
+                            icon: Iconsax.close_circle,
+                            borderOnly: true,
+                            onTap: () {
+                              Get.back();
+                            })
+                      ])
+                    ]),
+                    h: 130);
+              },
+              borderOnly: true,
             )
           ])
       ]),
@@ -342,19 +450,21 @@ _postponed(Work item, callback) {
             nt = v.add(Duration(minutes: dr)).toIso8601String();
           }
           Work newItem = Work(
-              id: work.getAt(work.length - 1)!.id + 1,
-              title: item.title,
-              desc: item.desc,
-              startDate: v.toIso8601String(),
-              endTime: '',
-              notifTime: nt,
-              cat: item.cat,
-              check: false,
-              date: item.date,
-              project: item.project,
-              repeat: item.repeat,
-              parent: item.id,
-              postponed: 0);
+            id: work.getAt(work.length - 1)!.id + 1,
+            title: item.title,
+            desc: item.desc,
+            startDate: v.toIso8601String(),
+            endTime: '',
+            notifTime: nt,
+            cat: item.cat,
+            check: false,
+            date: item.date,
+            project: item.project,
+            repeat: item.repeat,
+            parent: item.id,
+            postponed: 0,
+            priority: item.priority,
+          );
 
           await work.add(newItem);
           for (var i = 0; i < work.length; i++) {
@@ -492,7 +602,7 @@ _toDo(Work item, callback) async {
         item.endTime = '';
         await work.putAt(i, item);
         callback('v');
-        Get.back();
+        // Get.back();
         break;
       }
     }

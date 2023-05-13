@@ -16,6 +16,7 @@ class _DropDownField extends StatefulWidget {
   final String? hintText;
   final BorderRadius? borderRadius;
   final bool? required;
+  final EdgeInsets? margin;
 
   final Color? fillColor;
   final IconData? icon;
@@ -25,6 +26,7 @@ class _DropDownField extends StatefulWidget {
       required this.focusNode,
       required this.onTap,
       required this.icon,
+      required this.margin,
       this.onChanged,
       this.required,
       this.hintText,
@@ -77,7 +79,7 @@ class _DropDownFieldState extends State<_DropDownField> {
   @override
   Widget build(BuildContext context) {
     return Container(
-        margin: const EdgeInsets.all(5),
+        margin: widget.margin ?? const EdgeInsets.all(5),
         padding: const EdgeInsets.only(right: 10),
         height: 40.0,
         decoration: BoxDecoration(

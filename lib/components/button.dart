@@ -7,6 +7,9 @@ typedef Func = Function();
 
 class MyButton extends GetView {
   String title;
+  int badg;
+  double? height;
+  Color badgColor;
   IconData? icon;
   EdgeInsets? margin;
   Color bgColor;
@@ -17,6 +20,9 @@ class MyButton extends GetView {
   MyButton(
       {super.key,
       required this.title,
+      this.badg = 0,
+      this.height,
+      this.badgColor = Colors.red,
       this.icon,
       this.borderOnly,
       this.isSpaceBetween = false,
@@ -34,41 +40,58 @@ class MyButton extends GetView {
           onTap: onTap,
           borderRadius: BorderRadius.circular(10),
           child: Container(
-            margin: margin,
-            height: 34,
-            //width: 110,
-            decoration: BoxDecoration(
-                color: borderOnly == true ? Colors.transparent : bgColor,
-                border: borderOnly == true
-                    ? Border.all(color: bgColor, width: 1)
-                    : null,
-                borderRadius: BorderRadius.circular(10)),
-            // padding: EdgeInsets.symmetric(horizontal: 20),
-            child: Row(
-                mainAxisAlignment: isSpaceBetween!
-                    ? MainAxisAlignment.spaceBetween
-                    : MainAxisAlignment.center,
-                children: [
-                  if (icon != null)
-                    Container(
-                        padding:
-                            EdgeInsets.only(right: isSpaceBetween! ? 5 : 0),
-                        child: Icon(
-                          icon,
-                          color: textColor,
-                        )),
-                  if (icon != null) const SizedBox(width: 5),
+              margin: margin,
+              height: height ?? 34,
+              //width: 110,
+              decoration: BoxDecoration(
+                  color: borderOnly == true ? Colors.transparent : bgColor,
+                  border: borderOnly == true
+                      ? Border.all(color: bgColor, width: 1)
+                      : null,
+                  borderRadius: BorderRadius.circular(10)),
+              // padding: EdgeInsets.symmetric(horizontal: 20),
+              child: Stack(children: [
+                if (badg > 0)
                   Container(
-                      padding: EdgeInsets.only(left: isSpaceBetween! ? 5 : 0),
-                      child: Text(
-                        title,
-                        style: TextStyle(
-                            color: textColor,
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold),
-                      ))
-                ]),
-          ),
+                      alignment: Alignment.topLeft,
+                      child: CircleAvatar(
+                        backgroundColor: badgColor,
+                        maxRadius: 8,
+                        child: Text(
+                          badg > 9 ? '9+' : badg.toString(),
+                          style:
+                              const TextStyle(height: 1, color: Colors.white),
+                        ),
+                      )),
+                Container(
+                  alignment: Alignment.center,
+                  child: Row(
+                      mainAxisAlignment: isSpaceBetween!
+                          ? MainAxisAlignment.spaceBetween
+                          : MainAxisAlignment.center,
+                      children: [
+                        if (icon != null)
+                          Container(
+                              padding: EdgeInsets.only(
+                                  right: isSpaceBetween! ? 5 : 0),
+                              child: Icon(
+                                icon,
+                                color: textColor,
+                              )),
+                        if (icon != null) const SizedBox(width: 5),
+                        Container(
+                            padding:
+                                EdgeInsets.only(left: isSpaceBetween! ? 5 : 0),
+                            child: Text(
+                              title,
+                              style: TextStyle(
+                                  color: textColor,
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold),
+                            ))
+                      ]),
+                )
+              ])),
         ));
   }
 }

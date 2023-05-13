@@ -8,11 +8,9 @@ class AllNote extends GetView {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(centerTitle: true, title: const Text('یادداشت‌ها')),
-        body: TitledList(
-            data: note.values.toList(),
-            type: TitledListType.note,
-            callback: (v) {}));
+    return TitledList(
+        data: note.values.toList(),
+        type: TitledListType.note,
+        callback: (v) {});
   }
 }

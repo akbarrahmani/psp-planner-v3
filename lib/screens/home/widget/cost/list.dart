@@ -107,7 +107,7 @@ class CostItem extends GetView {
                       right: 10, bottom: 5, top: 5, left: 10),
                   height: 50,
                   child: InkWell(
-                      onTap: () => _details(item!, (v) => callback('v')),
+                      onTap: () => costItemDetails(item!, (v) => callback('v')),
                       child: Row(children: [
                         CircleAvatar(
                           backgroundColor: _checkStatus(item!) == 0
@@ -173,7 +173,7 @@ class CostItem extends GetView {
   }
 }
 
-_details(Cost item, callback) {
+costItemDetails(Cost item, callback) {
   String jsd = 'بدون زمان‌بندی';
   String jnd = 'بدون اعلان';
   String jpd = '';
@@ -271,6 +271,56 @@ _details(Cost item, callback) {
             onTap: () {
               Get.back();
               addCost(item: item);
+            },
+            borderOnly: true,
+          ),
+          const SizedBox(width: 10),
+          MyButton(
+            title: 'حذف',
+            bgColor: Colors.red,
+            textColor: Colors.red,
+            icon: Iconsax.trash,
+            onTap: () {
+              Get.back();
+              MyBottomSheet.view(
+                  Column(children: [
+                    const Text(
+                      'عملیات حذف قابل بازگشت نیست!',
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                    const Text('از حذف اطمینان دارید؟'),
+                    const SizedBox(height: 10),
+                    Row(children: [
+                      MyButton(
+                        title: 'تایید و حذف',
+                        bgColor: Colors.red,
+                        textColor: Colors.white,
+                        icon: Iconsax.trash,
+                        onTap: () async {
+                          Get.back();
+                          for (var i = 0; i < cost.length; i++) {
+                            if (cost.getAt(i)!.id == item.id) {
+                              await cost.deleteAt(i);
+                              callback('v');
+                              break;
+                            }
+                          }
+                        },
+                      ),
+                      const SizedBox(width: 10),
+                      MyButton(
+                          title: 'انصراف',
+                          bgColor: grey,
+                          textColor: grey,
+                          icon: Iconsax.close_circle,
+                          borderOnly: true,
+                          onTap: () {
+                            Get.back();
+                          })
+                    ])
+                  ]),
+                  h: 130);
             },
             borderOnly: true,
           )

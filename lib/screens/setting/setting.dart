@@ -3,10 +3,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
+import 'package:planner/components/lockScreen/lockScreen.dart';
 import 'package:planner/constant.dart';
 import 'package:planner/screens/home/widget/cost/cat/list.dart';
 import 'package:planner/screens/home/widget/work/cat/list.dart';
 import 'package:planner/variables.dart';
+part './setLock.dart';
 
 RxInt _hourEvent = 9.obs;
 RxInt _hourKrdo = 9.obs;
@@ -40,16 +42,16 @@ class SettingController extends GetxController {
 class Setting extends GetView {
   Setting({super.key});
   RxBool change = true.obs;
+  RxBool notifPanel = true.obs;
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
         child: Obx(() => change.isFalse || change.isTrue
             ? Column(children: [
-                _headerItem(title: 'تنظیمات حالت نمایش', start: true),
+                _headerItem(title: 'تنظیمات برنامه', start: true),
                 _switchItem(
                   title: 'حالت شب',
                   value: darkMode,
-                  end: true,
                   onChanged: (v) {
                     darkMode.value = v;
                     Get.changeThemeMode(
@@ -60,13 +62,33 @@ class Setting extends GetView {
                     change.toggle();
                   },
                 ),
-                _headerItem(title: 'تنظیمات نمایش تقویم'),
+                _navItem(
+                  title: 'رمز ورود',
+                  end: true,
+                  page: SetLock(
+                    callback: (v) {
+                      change.toggle();
+                    },
+                  ),
+                  cap: setting.getAt(0)!.password == '' ? 'خاموش' : 'روشن',
+                ),
+                _headerItem(title: 'تنظیمات تقویم'),
                 _switchItem(
-                  title: 'نمایش تعداد تسک‌های من',
+                  title: 'نمایش تعداد کارهای من',
                   value: setting.getAt(0)!.myTask!.obs,
                   onChanged: (v) {
                     var set = setting.getAt(0)!;
                     set.myTask = v;
+                    setting.putAt(0, set);
+                    change.toggle();
+                  },
+                ),
+                _switchItem(
+                  title: 'نمایش تعداد هزینه‌های من',
+                  value: setting.getAt(0)!.myCost!.obs,
+                  onChanged: (v) {
+                    var set = setting.getAt(0)!;
+                    set.myCost = v;
                     setting.putAt(0, set);
                     change.toggle();
                   },
@@ -82,7 +104,8 @@ class Setting extends GetView {
                   },
                 ),
                 _switchItem(
-                  title: 'نمایش تعداد/افزورن رویدادهای‌من به رویدادهای تقویمی',
+                  title:
+                      'نمایش تعداد یا افزودن رویدادهای‌من به رویدادهای تقویمی',
                   value: setting.getAt(0)!.myEvent!.obs,
                   onChanged: (v) {
                     var set = setting.getAt(0)!;
@@ -101,10 +124,21 @@ class Setting extends GetView {
                     change.toggle();
                   },
                 ),
+                _numbericItem(
+                    title: 'اختلاف تاریخ قمری (روز)',
+                    value: hijriOffset,
+                    min: -2,
+                    max: 2,
+                    callback: (v) {
+                      var set = setting.getAt(0)!;
+                      set.hijriOffset = v;
+                      setting.putAt(0, set);
+                      change.toggle();
+                    }),
                 _switchItem(
                   title: 'نمایش تاریخ میلادی',
-                  value: setting.getAt(0)!.gDate!.obs,
                   end: true,
+                  value: setting.getAt(0)!.gDate!.obs,
                   onChanged: (v) {
                     var set = setting.getAt(0)!;
                     set.gDate = v;
@@ -114,7 +148,7 @@ class Setting extends GetView {
                 ),
                 _headerItem(title: 'تنظیمات کارها'),
                 _switchItem(
-                  title: 'زمان انجام کار پرسیده شود؟',
+                  title: 'مدت زمان انجام کار پرسیده شود؟',
                   value: setting.getAt(0)!.timeAtWork!.obs,
                   onChanged: (v) {
                     var set = setting.getAt(0)!;
@@ -123,6 +157,27 @@ class Setting extends GetView {
                     change.toggle();
                   },
                 ),
+                _switchItem(
+                  title: 'اولویت بندی کارها',
+                  value: setting.getAt(0)!.workPriority!.obs,
+                  onChanged: (v) {
+                    var set = setting.getAt(0)!;
+                    set.workPriority = v;
+                    setting.putAt(0, set);
+                    change.toggle();
+                  },
+                ),
+                // _switchItem(
+                //   title: 'افزودن به تقویم گوگل',
+                //   value: setting.getAt(0)!.addWorkToGCalender!.obs,
+                //   onChanged: (v) {
+                //     var set = setting.getAt(0)!;
+                //     set.addWorkToGCalender = v;
+                //     setting.putAt(0, set);
+                //     change.toggle();
+                //   },
+                // ),
+
                 _navItem(
                     title: 'دسته‌بندی کارها',
                     end: true,
@@ -138,23 +193,60 @@ class Setting extends GetView {
                     change.toggle();
                   },
                 ),
+                // _switchItem(
+                //   title: 'افزودن به تقویم گوگل',
+                //   value: setting.getAt(0)!.addCostToGCalender!.obs,
+                //   onChanged: (v) {
+                //     var set = setting.getAt(0)!;
+                //     set.addCostToGCalender = v;
+                //     setting.putAt(0, set);
+                //     change.toggle();
+                //   },
+                // ),
+
                 _navItem(
                     title: 'دسته‌بندی هزینه‌ها',
                     end: true,
                     page: const CostCatPage()),
                 _headerItem(title: 'تنظیمات یادآورها'),
+                _switchItem(
+                  title: 'اعلان رویدادها در روز قبل',
+                  value: setting.getAt(0)!.eventDayBreforNotif!.obs,
+                  onChanged: (v) {
+                    var set = setting.getAt(0)!;
+                    set.eventDayBreforNotif = v;
+                    setting.putAt(0, set);
+                    change.toggle();
+                  },
+                ),
                 _numbericItem(
-                    title: 'ساعت اعلان رویدادهای روزانه',
-                    value: _hourEvent,
+                    title: 'ساعت اعلان رویدادها',
+                    value: setting.getAt(0)!.eventHourNotif!.obs,
                     callback: (v) {
-                      _hourEvent = v;
+                      var set = setting.getAt(0)!;
+                      set.eventHourNotif = v;
+                      setting.putAt(0, set);
+                      change.toggle();
                     }),
+                _switchItem(
+                  title: 'اعلان بررسی اهداف در روز قبل',
+                  value: setting.getAt(0)!.krdoDayBreforNotif!.obs,
+                  onChanged: (v) {
+                    var set = setting.getAt(0)!;
+                    set.krdoDayBreforNotif = v;
+                    setting.putAt(0, set);
+                    change.toggle();
+                  },
+                ),
                 _numbericItem(
                     title: 'ساعت اعلان بررسی اهداف',
-                    value: _hourKrdo,
+                    value: setting.getAt(0)!.krdoHourNotif!.obs,
                     end: true,
                     callback: (v) {
-                      _hourKrdo = v;
+                      var set = setting.getAt(0)!;
+                      set.krdoHourNotif = v;
+                      setting.putAt(0, set);
+                      change.toggle();
                     }),
                 _headerItem(title: ''),
               ])
@@ -179,7 +271,7 @@ _headerItem({required String title, start = false}) {
 _switchItem(
     {required String title,
     required RxBool value,
-    onChanged,
+    required onChanged,
     bool end = false}) {
   return Column(children: [
     InkWell(
@@ -213,6 +305,8 @@ _switchItem(
 _numbericItem(
     {required String title,
     required RxInt value,
+    int min = 0,
+    int max = 23,
     required callback,
     bool end = false}) {
   return Column(children: [
@@ -227,14 +321,14 @@ _numbericItem(
             InkWell(
                 borderRadius: BorderRadius.circular(50),
                 onTap: () {
-                  if (value.value < 23) {
+                  if (value.value < max) {
                     value.value++;
-                    callback(value);
+                    callback(value.value);
                   }
                 },
                 child: Icon(
                   Iconsax.arrow_up_2,
-                  color: grey,
+                  color: darkMode.isTrue ? grey2 : grey,
                 )),
             Container(
                 width: 40,
@@ -244,20 +338,20 @@ _numbericItem(
                       style: TextStyle(
                           fontSize: 20,
                           height: 1,
-                          color: grey,
+                          color: darkMode.isTrue ? grey2 : grey,
                           fontWeight: FontWeight.bold),
                     ))),
             InkWell(
                 borderRadius: BorderRadius.circular(50),
                 onTap: () {
-                  if (value.value > 0) {
+                  if (value.value > min) {
                     value.value--;
-                    callback(value);
+                    callback(value.value);
                   }
                 },
                 child: Icon(
                   Iconsax.arrow_down_1,
-                  color: grey,
+                  color: darkMode.isTrue ? grey2 : grey,
                 )),
           ])
         ])),
@@ -271,7 +365,7 @@ _numbericItem(
   ]);
 }
 
-_navItem({required String title, required page, end = false}) {
+_navItem({required String title, required page, String? cap, end = false}) {
   return Column(children: [
     InkWell(
       onTap: () => Get.to(page),
@@ -279,9 +373,18 @@ _navItem({required String title, required page, end = false}) {
           height: 50,
           padding:
               const EdgeInsets.only(right: 20, left: 10, top: 10, bottom: 10),
-          child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [Text(title), const Icon(Iconsax.arrow_left_2)])),
+          child:
+              Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+            Text(title),
+            Row(children: [
+              if (cap != null)
+                Text(
+                  cap,
+                  style: TextStyle(color: grey),
+                ),
+              const Icon(Iconsax.arrow_left_2)
+            ])
+          ])),
     ),
     if (!end)
       Container(

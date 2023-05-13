@@ -1,4 +1,4 @@
-// ignore_for_file: library_private_types_in_public_api
+// ignore_for_file: library_private_types_in_public_api, prefer_typing_uninitialized_variables
 
 library floating_bottom_bar;
 
@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:iconsax/iconsax.dart';
 import 'package:planner/components/floatingNavBar/util/event_bus.dart';
 import 'package:planner/constant.dart';
 
@@ -44,14 +45,16 @@ part 'widgets/menu_items_child.dart';
 
 class AnimatedBottomNavigationBar extends StatefulWidget {
   const AnimatedBottomNavigationBar({
-    required this.bottomBarCenterModel,
+    this.bottomBarCenterModel,
     required this.bottomBar,
+    this.addBT,
     this.barColor = Colors.white,
     this.barGradient,
     Key? key,
   }) : super(key: key);
   final List<BottomBarItemsModel> bottomBar;
-  final BottomBarCenterModel bottomBarCenterModel;
+  final BottomBarCenterModel? bottomBarCenterModel;
+  final addBT;
   final Color barColor;
   final Gradient? barGradient;
 
@@ -86,9 +89,25 @@ class _AnimatedBottomNavigationBarState
             bottomBarItemsList: widget.bottomBar,
             barGradient: widget.barGradient,
           ),
-          AnimatedButton(
-            bottomBarCenterModel: widget.bottomBarCenterModel,
-          ),
+          if (widget.bottomBarCenterModel != null)
+            AnimatedButton(
+                bottomBarCenterModel: widget.bottomBarCenterModel ??
+                    BottomBarCenterModel(
+                        centerIcon: const FloatingCenterButton(
+                            child: Icon(
+                          Icons.add,
+                          color: Colors.white,
+                        )),
+                        centerIconChild: [
+                          FloatingCenterButtonChild(
+                            child: const Icon(
+                              Iconsax.briefcase,
+                              color: AppColors.white,
+                            ),
+                            onTap: () async {},
+                          )
+                        ])),
+          widget.addBT ?? Container()
         ],
       ),
     );

@@ -1,6 +1,8 @@
 // ignore_for_file: file_names
 
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:hive/hive.dart';
 import 'package:planner/components/food/foodDetails.dart';
 import 'package:planner/dbModels/models.dart';
@@ -40,6 +42,34 @@ class DataBase {
       await init();
     }
     setting = await Hive.openBox<Setting>('setting');
+    if (setting.isEmpty) {
+      Setting sett = Setting(
+          addCostToGCalender: false,
+          addWorkToGCalender: false,
+          app: "planner",
+          calenderEvent: true,
+          darkMode: false,
+          eventDayBreforNotif: false,
+          eventHourNotif: 9,
+          gDate: true,
+          hDate: true,
+          hijriOffset: 0,
+          id: 0,
+          krdoDayBreforNotif: false,
+          krdoHourNotif: 11,
+          myCost: true,
+          myEvent: true,
+          myTask: true,
+          password: "",
+          payDate: true,
+          timeAtWork: true,
+          workPriority: true);
+      await setting.add(sett);
+    }
+    darkMode.value = setting.getAt(0)!.darkMode ?? false;
+    Get.changeThemeMode(darkMode.value ? ThemeMode.dark : ThemeMode.light);
+    hijriOffset.value = setting.getAt(0)!.hijriOffset!;
+    isLockApp.value = setting.getAt(0)!.password != '';
     goals = await Hive.openBox<Goals>('goals');
     objective = await Hive.openBox<Objective>('objective');
     kr = await Hive.openBox<KR>("kr");
@@ -65,20 +95,6 @@ class DataBase {
     if (pageHelp.isEmpty) {
       PageHelp ph = PageHelp(list: []);
       await pageHelp.add(ph);
-    }
-    if (setting.isEmpty) {
-      Setting sett = Setting(
-          id: 0,
-          eventHourNotif: 9,
-          krdoHourNotif: 11,
-          app: 'planner',
-          calenderEvent: true,
-          myEvent: true,
-          myTask: true,
-          hDate: true,
-          gDate: true,
-          darkMode: false);
-      await setting.add(sett);
     }
     if (workCat.isEmpty) {
       WorkCat e = WorkCat(

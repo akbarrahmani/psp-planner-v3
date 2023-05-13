@@ -37,3 +37,6 @@ late Box<DBVersion> dbversion;
 late Box<FavoriteFood> favoriteFood;
 late Box<FoodEat> foodEat;
 late Box<WDrink> wDrink;
+
+RxInt hijriOffset = 0.obs;
+RxBool isLockApp = false.obs;

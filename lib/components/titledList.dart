@@ -3,22 +3,30 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:planner/components/Celander/calender.dart';
-import 'package:planner/components/appbarScroll/customAppBar.dart';
 import 'package:planner/constant.dart';
+import 'package:planner/screens/health/components/component.dart';
+import 'package:planner/screens/health/components/foodList.dart';
+import 'package:planner/screens/health/daily/daily.dart';
 import 'package:planner/screens/home/widget/cost/list.dart';
+import 'package:planner/screens/home/widget/event/list.dart';
 import 'package:planner/screens/home/widget/note/list.dart';
 
 import 'package:planner/screens/home/widget/work/list.dart';
+import 'package:shamsi_date/shamsi_date.dart';
 import 'package:sliver_tools/sliver_tools.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 
 import '../variables.dart';
+import 'customAppBar.dart';
 
-enum TitledListType { work, note, cost, event }
+enum TitledListType { work, note, cost, event, food, dayFood }
+
+final _noteFilterCtl = ScrollController();
 
 class TitledList extends GetView {
   TitledList({
     super.key,
+    this.date,
     required this.data,
     required type,
     required this.callback,
@@ -26,6 +34,7 @@ class TitledList extends GetView {
   TitledListType get type => _type;
   late final TitledListType _type;
   var data;
+  DateTime? date;
   ValueSetter callback;
   var sortList = {};
   RxBool ready = false.obs, reverse = false.obs;
@@ -39,10 +48,19 @@ class TitledList extends GetView {
     return Obx(() => ready.isTrue
         ? MyScaffold(
             appBar: Container(),
-            expandedAppBar:
-                type == TitledListType.note ? Container() : exTitle(),
+            expandedAppBar: type == TitledListType.note ||
+                    type == TitledListType.event ||
+                    type == TitledListType.food ||
+                    type == TitledListType.dayFood
+                ? Container()
+                : exTitle(),
             minExtent: 0,
-            maxExtent: type == TitledListType.note ? 0 : 200,
+            maxExtent: type == TitledListType.note ||
+                    type == TitledListType.event ||
+                    type == TitledListType.food ||
+                    type == TitledListType.dayFood
+                ? 0
+                : 200,
             child: data.isEmpty
                 ? Container(
                     padding: EdgeInsets.only(top: (Get.height - 100) / 5),
@@ -62,10 +80,16 @@ class TitledList extends GetView {
                     ? Column(children: [
                         Container(
                             padding: const EdgeInsets.only(bottom: 10),
-                            color: Colors.white,
-                            child: type == TitledListType.note
-                                ? noteFilter()
-                                : filter()),
+                            color: darkMode.isTrue
+                                ? Colors.grey.shade800
+                                : Colors.white,
+                            child: type == TitledListType.event ||
+                                    type == TitledListType.food ||
+                                    type == TitledListType.dayFood
+                                ? Container()
+                                : type == TitledListType.note
+                                    ? noteFilter()
+                                    : filter()),
                         Container(
                             padding:
                                 EdgeInsets.only(top: (Get.height - 100) / 5),
@@ -104,10 +128,16 @@ class TitledList extends GetView {
                             SliverPinnedHeader(
                                 child: Container(
                                     padding: const EdgeInsets.only(bottom: 10),
-                                    color: Colors.white,
-                                    child: type == TitledListType.note
-                                        ? noteFilter()
-                                        : filter())),
+                                    color: darkMode.isTrue
+                                        ? Colors.grey.shade800
+                                        : Colors.white,
+                                    child: type == TitledListType.event ||
+                                            type == TitledListType.food ||
+                                            type == TitledListType.dayFood
+                                        ? Container()
+                                        : type == TitledListType.note
+                                            ? noteFilter()
+                                            : filter())),
                             for (var i = 0; i < sortList.length; i++)
                               MultiSliver(pushPinnedChildren: true, children: [
                                 SliverPinnedHeader(
@@ -132,11 +162,32 @@ class TitledList extends GetView {
                                                 child: Text(
                                                   sortList.keys.toList()[i] !=
                                                           ''
-                                                      ? DateConvertor.toJalaliShort(
-                                                          DateTime.parse(
-                                                              sortList.keys
-                                                                  .toList()[i]),
-                                                          time: false)
+                                                      ? type ==
+                                                              TitledListType
+                                                                  .dayFood
+                                                          ? mealName(sortList
+                                                              .keys
+                                                              .toList()[i])
+                                                          : type ==
+                                                                  TitledListType
+                                                                      .food
+                                                              ? findFoodCatName(sortList
+                                                                  .keys
+                                                                  .toList()[i])
+                                                              : type ==
+                                                                      TitledListType
+                                                                          .event
+                                                                  ? sortList.keys.toList()[i].split('/')[
+                                                                          1] +
+                                                                      ' ' +
+                                                                      Jalali(1402, int.parse(sortList.keys.toList()[i].split('/')[0]))
+                                                                          .formatter
+                                                                          .mN
+                                                                  : DateConvertor.toJalaliShort(
+                                                                      DateTime.parse(sortList
+                                                                          .keys
+                                                                          .toList()[i]),
+                                                                      time: false)
                                                       : 'بدون زمان‌بندی',
                                                   style: const TextStyle(
                                                       fontSize: 16),
@@ -188,7 +239,12 @@ class TitledList extends GetView {
                                             initPage();
                                           });
                                     case TitledListType.event:
-                                      return Container();
+                                      return EventItem(
+                                          item: sortList[sortList.keys
+                                              .toList()[i]]![index],
+                                          callback: (v) {
+                                            initPage();
+                                          });
                                     case TitledListType.note:
                                       return NoteItem(
                                           item: sortList[sortList.keys
@@ -196,6 +252,20 @@ class TitledList extends GetView {
                                           callback: (v) {
                                             initPage();
                                           });
+                                    case TitledListType.food:
+                                      return foodItem(
+                                          food: sortList[sortList.keys
+                                              .toList()[i]]![index],
+                                          callback: (f) {
+                                            callback(f);
+                                            Get.back();
+                                          });
+                                    case TitledListType.dayFood:
+                                      return dayFoodItem(
+                                          date!,
+                                          sortList[sortList.keys.toList()[i]]![
+                                              index],
+                                          (v) => callback(v));
                                   }
                                 },
                                         childCount:
@@ -323,9 +393,11 @@ class TitledList extends GetView {
                     child: CircleAvatar(
                         maxRadius: 11,
                         backgroundColor: sel.value == 2 ? orange : grey,
-                        child: const CircleAvatar(
+                        child: CircleAvatar(
                           maxRadius: 9.5,
-                          backgroundColor: Colors.white,
+                          backgroundColor: darkMode.isTrue
+                              ? Colors.grey.shade800
+                              : Colors.white,
                         ))),
                 const SizedBox(width: 10),
               ]),
@@ -376,27 +448,52 @@ class TitledList extends GetView {
         padding: const EdgeInsets.only(right: 10, left: 10),
         child: Row(
           children: [
-            const Icon(Iconsax.arrow_right_3),
+            InkWell(
+                onTap: () async {
+                  await _noteFilterCtl.animateTo(_noteFilterCtl.offset - 40,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.bounceInOut);
+                },
+                child: const Icon(Iconsax.arrow_right_3)),
             Flexible(
                 child: SingleChildScrollView(
+                    controller: _noteFilterCtl,
                     scrollDirection: Axis.horizontal,
                     child: Row(children: [
                       titleItem(noteItemCat.value == 1000, 'همه', () {
                         noteItemCat.value = 1000;
                         initPage();
+                        _noteFilterCtl.animateTo(0,
+                            duration: const Duration(milliseconds: 200),
+                            curve: Curves.bounceInOut);
                       }, verticalPadding: 0, border: 1.35),
                       for (int i = 0; i < noteCat.length; i++)
                         IconButton(
-                            onPressed: () {
+                            onPressed: () async {
+                              var sp = _noteFilterCtl.offset;
                               noteItemCat.value = i;
                               initPage();
+                              if ((i > 2 &&
+                                      ((sp > 470 && i < 12) || sp <= 470)) ||
+                                  (i <= 2 && sp > 90)) {
+                                double off = (30 + (i * 40));
+                                await _noteFilterCtl.animateTo(off,
+                                    duration: const Duration(milliseconds: 200),
+                                    curve: Curves.bounceInOut);
+                              }
                             },
                             icon: Icon(
                               noteCat[i],
                               color: i == noteItemCat.value ? orange : grey,
                             ))
                     ]))),
-            const Icon(Iconsax.arrow_left_2)
+            InkWell(
+                onTap: () async {
+                  await _noteFilterCtl.animateTo(_noteFilterCtl.offset + 45,
+                      duration: const Duration(milliseconds: 200),
+                      curve: Curves.bounceInOut);
+                },
+                child: const Icon(Iconsax.arrow_left_2))
           ],
         ));
   }
@@ -668,6 +765,39 @@ class TitledList extends GetView {
           } else {
             sortList.putIfAbsent(data[i].date.split('T')[0], () => [data[i]]);
           }
+        }
+      }
+    } else if (type == TitledListType.event) {
+      for (var i = reverse.value ? data.length - 1 : 0;
+          (reverse.value ? 0 : i) < (reverse.value ? i : data.length);
+          reverse.value ? i-- : i++) {
+        if (sortList.containsKey(data[i].effDate)) {
+          sortList.update(data[i].effDate, (value) => [...value, data[i]]);
+        } else {
+          sortList.putIfAbsent(data[i].effDate, () => [data[i]]);
+        }
+      }
+    } else if (type == TitledListType.food) {
+      for (var i = reverse.value ? data.length - 1 : 0;
+          (reverse.value ? 0 : i) < (reverse.value ? i : data.length);
+          reverse.value ? i-- : i++) {
+        for (var c = 0; c < data[i].categories.length; c++) {
+          if (sortList.containsKey(data[i].categories[c])) {
+            sortList.update(
+                data[i].categories[c], (value) => [...value, data[i]]);
+          } else {
+            sortList.putIfAbsent(data[i].categories[c], () => [data[i]]);
+          }
+        }
+      }
+    } else if (type == TitledListType.dayFood) {
+      for (var i = reverse.value ? data.length - 1 : 0;
+          (reverse.value ? 0 : i) < (reverse.value ? i : data.length);
+          reverse.value ? i-- : i++) {
+        if (sortList.containsKey(data[i].mealID)) {
+          sortList.update(data[i].mealID, (value) => [...value, data[i]]);
+        } else {
+          sortList.putIfAbsent(data[i].mealID, () => [data[i]]);
         }
       }
     }

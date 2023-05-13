@@ -15,8 +15,16 @@ class Setting {
       this.hDate,
       this.myEvent,
       this.myTask,
+      this.myCost,
       this.timeAtWork,
-      this.payDate});
+      this.payDate,
+      this.hijriOffset,
+      this.workPriority,
+      this.eventDayBreforNotif,
+      this.krdoDayBreforNotif,
+      this.password,
+      this.addWorkToGCalender,
+      this.addCostToGCalender});
   @HiveField(0)
   int? id;
   @HiveField(1)
@@ -41,6 +49,22 @@ class Setting {
   bool? timeAtWork;
   @HiveField(11, defaultValue: true)
   bool? payDate;
+  @HiveField(12, defaultValue: 0)
+  int? hijriOffset;
+  @HiveField(13, defaultValue: true)
+  bool? workPriority;
+  @HiveField(14, defaultValue: true)
+  bool? eventDayBreforNotif;
+  @HiveField(15, defaultValue: false)
+  bool? krdoDayBreforNotif;
+  @HiveField(16, defaultValue: true)
+  bool? myCost;
+  @HiveField(17, defaultValue: '')
+  String? password;
+  @HiveField(18, defaultValue: false)
+  bool? addWorkToGCalender;
+  @HiveField(19, defaultValue: false)
+  bool? addCostToGCalender;
 
   Map toJson() => {
         'id': id,
@@ -54,7 +78,15 @@ class Setting {
         'myEvent': myEvent,
         'myTask': myTask,
         'timeAtWork': timeAtWork,
-        'payDate': payDate
+        'payDate': payDate,
+        'hijriOffset': hijriOffset,
+        'workPriority': workPriority,
+        'eventDayBreforNotif': eventDayBreforNotif,
+        'krdoDayBreforNotif': krdoDayBreforNotif,
+        'myCost': myCost,
+        'password': password,
+        'addWorkToGCalender': addWorkToGCalender,
+        'addCostToGCalender': addCostToGCalender
       };
 }
 
@@ -270,7 +302,8 @@ class Work {
       required this.project,
       required this.repeat,
       required this.parent,
-      required this.postponed});
+      required this.postponed,
+      required this.priority});
   @HiveField(0)
   int id;
   @HiveField(1)
@@ -297,6 +330,9 @@ class Work {
   int parent; //0>no repeat | thisID>this is Parent repeat | otherID>this is child Repeat
   @HiveField(12, defaultValue: 0)
   int postponed; //id
+  @HiveField(13, defaultValue: 1)
+  int priority;
+
   Map toJson() => {
         'id': id,
         'title': title,
@@ -310,7 +346,8 @@ class Work {
         'project': project,
         'repeat': repeat,
         'parent': parent,
-        'postponed': postponed
+        'postponed': postponed,
+        'priority': priority
       };
 }
 
@@ -480,6 +517,8 @@ class FoodDetails {
   double? protein;
   @HiveField(9)
   double? fat;
+  @HiveField(10, defaultValue: false)
+  bool? peronal;
 
   FoodDetails(
       {this.name,
@@ -491,7 +530,8 @@ class FoodDetails {
       this.carbo,
       this.calorie,
       this.protein,
-      this.fat});
+      this.fat,
+      this.peronal});
 
   Map toJson() => {
         'name': name,
@@ -503,7 +543,8 @@ class FoodDetails {
         'carbo': carbo,
         'calorie': calorie,
         'protein': protein,
-        'fat': fat
+        'fat': fat,
+        'peronal': peronal
       };
 }
 

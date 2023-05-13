@@ -8,11 +8,9 @@ class AllWork extends GetView {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(centerTitle: true, title: const Text('کارها')),
-        body: TitledList(
-            data: work.values.toList(),
-            type: TitledListType.work,
-            callback: (v) {}));
+    return TitledList(
+        data: work.values.toList(),
+        type: TitledListType.work,
+        callback: (v) {});
   }
 }

@@ -8,11 +8,9 @@ class AllCost extends GetView {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: AppBar(centerTitle: true, title: const Text('هزینه‌ها')),
-        body: TitledList(
-            data: cost.values.toList(),
-            type: TitledListType.cost,
-            callback: (v) {}));
+    return TitledList(
+        data: cost.values.toList(),
+        type: TitledListType.cost,
+        callback: (v) {});
   }
 }

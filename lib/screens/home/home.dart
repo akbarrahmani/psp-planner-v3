@@ -4,13 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconsax/iconsax.dart';
 import 'package:planner/components/Celander/calender.dart';
-import 'package:planner/components/appbarScroll/customAppBar.dart';
-import 'package:planner/screens/home/widget/cost/all.dart';
+import 'package:planner/screens/home/widget/all.dart';
 import 'package:planner/screens/home/widget/event/list.dart';
-import 'package:planner/screens/home/widget/note/all.dart';
 import 'package:planner/screens/home/widget/tab.dart';
-import 'package:planner/screens/home/widget/work/all.dart';
 import 'package:planner/variables.dart';
+import '../../components/customAppBar.dart';
 
 RxInt homeChildIndex = 0.obs;
 
@@ -36,21 +34,25 @@ class Home extends GetView {
                   callback: (DateTime date) {
                     selectedDate.value = date;
                   }),
-              child: Expanded(
-                  child: Obx(() => selectedDate.value == DateTime.now() ||
-                          selectedDate.value != DateTime.now()
-                      ? Column(children: [const ShowEventInHome(), TabHome()])
-                      : Container()))),
+              child: Obx(() => selectedDate.value == DateTime.now() ||
+                      selectedDate.value != DateTime.now()
+                  ? Column(children: [
+                      ShowEventInHome(
+                        callback: (v) {},
+                      ),
+                      TabHome()
+                    ])
+                  : Container())),
           Container(
               padding: const EdgeInsets.only(left: 10),
               alignment: Alignment.bottomLeft,
               child: InkWell(
                   onTap: () {
                     Get.to(homeChildIndex.value == 0
-                        ? const AllWork()
+                        ? ShowAll(index: 0.obs)
                         : homeChildIndex.value == 1
-                            ? const AllNote()
-                            : const AllCost());
+                            ? ShowAll(index: 1.obs)
+                            : ShowAll(index: 2.obs));
                   },
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.end,

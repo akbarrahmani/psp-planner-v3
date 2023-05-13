@@ -62,6 +62,7 @@ workCatAdd({WorkCat? item, callback}) {
                         workCat.putAt(i, item);
                       }
                     }
+                    callback('e');
                     Get.back();
                   }
                 }),

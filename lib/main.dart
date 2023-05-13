@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:planner/constant.dart';
 import 'package:planner/screens/splash.dart';
 import 'package:planner/service/notifications/notification.dart';
@@ -14,12 +15,10 @@ Future<void> main() async {
   AppMetrica.runZoneGuarded(() {
     WidgetsFlutterBinding.ensureInitialized();
     SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
-
     AppMetrica.activate(appMetricaConfig);
-
     AppMetricaPush.activate();
     runApp(GetMaterialApp(
-      home: Obx(() => darkMode.value ? const App() : const App()),
+      home: Obx(() => darkMode.isTrue ? const App() : const App()),
       theme: ThemeData(
           useMaterial3: true,
           fontFamily: 'iran',
@@ -83,13 +82,40 @@ Future<void> main() async {
   });
 }
 
-class App extends GetView {
+class App extends StatefulWidget {
   const App({super.key});
+
+  @override
+  State<StatefulWidget> createState() => _App();
+}
+
+class _App extends State<App> {
+  @override
+  void initState() {
+    super.initState();
+    MyNotification.requestPermissions();
+    ignoreBatteryOptimizations();
+  }
+
+  ignoreBatteryOptimizations() async {
+    var s = await Permission.ignoreBatteryOptimizations.status;
+    if (s.isDenied) {
+      await Permission.ignoreBatteryOptimizations.request();
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return const Splash();
+  }
+}
+
+class App1 extends GetView {
+  const App1({super.key});
 
   @override
   Widget build(Object context) {
     MyNotification.requestPermissions();
-
     return const Splash();
   }
 }

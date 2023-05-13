@@ -36,12 +36,14 @@ class MyDropdown extends StatefulWidget {
   final Color? fillColor;
   final IconData? icon;
   final FocusNode focusNode;
+  final EdgeInsets? margin;
   bool? isRow;
   MyDropdown({
     Key? key,
     required this.items,
     required this.controller,
     required this.focusNode,
+    this.margin,
     this.isRow,
     this.required,
     this.hintText,
@@ -122,6 +124,7 @@ class _MyDropdownState extends State<MyDropdown> {
             controller: widget.controller,
             required: widget.required,
             icon: widget.icon,
+            margin: widget.margin,
             onTap: showCallback,
             hintText: widget.hintText ?? 'انتخاب کنید',
             borderRadius: widget.fieldBorderRadius,

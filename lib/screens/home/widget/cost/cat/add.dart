@@ -62,6 +62,7 @@ costCatAdd({CostCat? item, callback}) {
                         costCat.putAt(i, item);
                       }
                     }
+                    callback('e');
                     Get.back();
                   }
                 }),

@@ -27,15 +27,23 @@ class SettingAdapter extends TypeAdapter<Setting> {
       hDate: fields[8] == null ? true : fields[8] as bool?,
       myEvent: fields[7] == null ? true : fields[7] as bool?,
       myTask: fields[5] == null ? true : fields[5] as bool?,
+      myCost: fields[16] == null ? true : fields[16] as bool?,
       timeAtWork: fields[10] == null ? true : fields[10] as bool?,
       payDate: fields[11] == null ? true : fields[11] as bool?,
+      hijriOffset: fields[12] == null ? 0 : fields[12] as int?,
+      workPriority: fields[13] == null ? true : fields[13] as bool?,
+      eventDayBreforNotif: fields[14] == null ? true : fields[14] as bool?,
+      krdoDayBreforNotif: fields[15] == null ? false : fields[15] as bool?,
+      password: fields[17] == null ? '' : fields[17] as String?,
+      addWorkToGCalender: fields[18] == null ? false : fields[18] as bool?,
+      addCostToGCalender: fields[19] == null ? false : fields[19] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, Setting obj) {
     writer
-      ..writeByte(12)
+      ..writeByte(20)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -59,7 +67,23 @@ class SettingAdapter extends TypeAdapter<Setting> {
       ..writeByte(10)
       ..write(obj.timeAtWork)
       ..writeByte(11)
-      ..write(obj.payDate);
+      ..write(obj.payDate)
+      ..writeByte(12)
+      ..write(obj.hijriOffset)
+      ..writeByte(13)
+      ..write(obj.workPriority)
+      ..writeByte(14)
+      ..write(obj.eventDayBreforNotif)
+      ..writeByte(15)
+      ..write(obj.krdoDayBreforNotif)
+      ..writeByte(16)
+      ..write(obj.myCost)
+      ..writeByte(17)
+      ..write(obj.password)
+      ..writeByte(18)
+      ..write(obj.addWorkToGCalender)
+      ..writeByte(19)
+      ..write(obj.addCostToGCalender);
   }
 
   @override
@@ -447,13 +471,14 @@ class WorkAdapter extends TypeAdapter<Work> {
       repeat: (fields[10] as List).cast<dynamic>(),
       parent: fields[11] as int,
       postponed: fields[12] == null ? 0 : fields[12] as int,
+      priority: fields[13] == null ? 1 : fields[13] as int,
     );
   }
 
   @override
   void write(BinaryWriter writer, Work obj) {
     writer
-      ..writeByte(13)
+      ..writeByte(14)
       ..writeByte(0)
       ..write(obj.id)
       ..writeByte(1)
@@ -479,7 +504,9 @@ class WorkAdapter extends TypeAdapter<Work> {
       ..writeByte(11)
       ..write(obj.parent)
       ..writeByte(12)
-      ..write(obj.postponed);
+      ..write(obj.postponed)
+      ..writeByte(13)
+      ..write(obj.priority);
   }
 
   @override
@@ -756,13 +783,14 @@ class FoodDetailsAdapter extends TypeAdapter<FoodDetails> {
       calorie: fields[7] as double?,
       protein: fields[8] as double?,
       fat: fields[9] as double?,
+      peronal: fields[10] == null ? false : fields[10] as bool?,
     );
   }
 
   @override
   void write(BinaryWriter writer, FoodDetails obj) {
     writer
-      ..writeByte(10)
+      ..writeByte(11)
       ..writeByte(0)
       ..write(obj.name)
       ..writeByte(1)
@@ -782,7 +810,9 @@ class FoodDetailsAdapter extends TypeAdapter<FoodDetails> {
       ..writeByte(8)
       ..write(obj.protein)
       ..writeByte(9)
-      ..write(obj.fat);
+      ..write(obj.fat)
+      ..writeByte(10)
+      ..write(obj.peronal);
   }
 
   @override
